@@ -12,12 +12,12 @@ RUN go mod download
 COPY . .
 
 # Build the main sub-project
-WORKDIR /app
-RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/main
+WORKDIR /app/cmd
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/bulker
 
 # Final image
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 WORKDIR /root/
-COPY --from=builder /app/bin/main .
-CMD ["./main"]
+COPY --from=builder /app/bin/bulker .
+CMD ["./bulker"]
