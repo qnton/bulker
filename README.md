@@ -12,7 +12,7 @@ This project consists of a Go-based service for sending emails using an HTTP end
 
 ## Prerequisites
 
-- Go installed on your device.
+- Go installed on your device or use Docker.
 - A running RabbitMQ instance.
 - An SMTP server for sending emails.
 
