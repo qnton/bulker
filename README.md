@@ -90,7 +90,7 @@ The service exposes an HTTP POST endpoint at `http://localhost:8080/send-mail` t
 curl -X POST \
   http://localhost:8080/send-mail \
   -H 'Content-Type: application/json' \
-  -H 'A'
+  -H 'Authorization: qwerty' \
   -d '{
 	"recipient_list": [
 		{"name": "Max", "to": "email1@example.com"},
