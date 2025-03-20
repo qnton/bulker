@@ -212,11 +212,32 @@ func renderTemplates(subjectTemplate, contentTemplate string, data map[string]in
 	return subjectBuf.String(), contentBuf.String(), nil
 }
 
+func formatJSONString(to, subject, content string) (string, error) {
+	msg := map[string]string{
+		"to":      to,
+		"subject": subject,
+		"body":    content,
+	}
+
+	jsonData, err := json.Marshal(msg)
+	if err != nil {
+		return "", err
+	}
+
+	return string(jsonData), nil
+}
+
 func sendToRabbitMQ(to, subject, content string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	err := rmqChannel.PublishWithContext(
+	messageBody, err := formatJSONString(to, subject, content)
+	if err != nil {
+		log.Printf("Failed to format JSON string: %v", err)
+		return
+	}
+
+	err = rmqChannel.PublishWithContext(
 		ctx,
 		"",
 		queueName,
@@ -225,7 +246,7 @@ func sendToRabbitMQ(to, subject, content string) {
 		amqp.Publishing{
 			ContentType:  "application/json",
 			DeliveryMode: amqp.Persistent,
-			Body:         []byte(fmt.Sprintf(`{"to": "%s", "subject": "%s", "body": "%s"}`, to, subject, content)),
+			Body:         []byte(messageBody),
 		},
 	)
 
