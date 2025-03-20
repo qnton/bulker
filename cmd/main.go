@@ -103,16 +103,24 @@ func retrySendMail(mail Mail, originalMsg amqp.Delivery) {
 	mutex.Unlock()
 
 	for retryCount <= maxRetries {
-		if err := sendMail(mail); err == nil {
+		log.Printf("Attempt %d to send mail to %s", retryCount+1, mail.To)
+
+		err := sendMail(mail)
+		if err == nil {
+			log.Printf("Successfully sent mail to %s on attempt %d", mail.To, retryCount+1)
+
 			mutex.Lock()
 			delete(retryCounts, msgStr)
 			mutex.Unlock()
+
 			originalMsg.Ack(false)
 			return
 		}
 
-		log.Printf("Failed to send mail to %s", mail.To)
+		log.Printf("Error sending mail to %s on attempt %d: %v", mail.To, retryCount+1, err)
+
 		retryCount++
+
 		mutex.Lock()
 		retryCounts[msgStr] = retryCount
 		mutex.Unlock()
@@ -123,6 +131,7 @@ func retrySendMail(mail Mail, originalMsg amqp.Delivery) {
 			return
 		}
 
+		log.Printf("Retrying in 1 second before next attempt...")
 		time.Sleep(1 * time.Second)
 	}
 }
